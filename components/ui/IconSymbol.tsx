@@ -12,6 +12,8 @@ const MAPPING = {
   'house.fill': 'home',
   'cart.fill.badge.plus': 'add-shopping-cart',
   'list.bullet': 'format-list-bulleted',
+  'gear': 'settings',
+  'plus': 'add',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

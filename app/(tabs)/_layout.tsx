@@ -1,18 +1,18 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 
 export default function TabLayout() {
+  const theme = useColorScheme() ?? 'light';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors['orange'].tint,
-        headerShown: false,
+        tabBarActiveTintColor: Colors['orange'].icon,
         tabBarButton: HapticTab,
         tabBarStyle: Platform.select({
           ios: {
@@ -21,12 +21,18 @@ export default function TabLayout() {
           },
           default: {},
         }),
+        headerRight: () => (
+          <TouchableOpacity onPress={() => {alert('Settings not yet implemented!')}}>
+            <IconSymbol size={28} name="gear" color={Colors[theme].icon} style={styles.headerIcon} />
+          </TouchableOpacity>
+        ),
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
+          headerTitle: 'Home Dashboard',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
@@ -34,6 +40,7 @@ export default function TabLayout() {
         name="addItem"
         options={{
           title: 'Add Item',
+          headerTitle: 'Shopping List',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cart.fill.badge.plus" color={color} />,
         }}
       />
@@ -41,9 +48,16 @@ export default function TabLayout() {
         name="pantry"
         options={{
           title: 'Pantry',
+          headerTitle: 'Pantry Overview',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    paddingRight: 20
+  },
+});

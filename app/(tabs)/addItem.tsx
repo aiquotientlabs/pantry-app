@@ -1,28 +1,21 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { Text, View, StyleSheet } from "react-native";
+import { TabContainer } from '@/components/TabContainer';
+import { ThemedButton } from "@/components/ThemedButton";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { Colors } from "@/constants/Colors";
+import { ThemedInput } from "@/components/ThemedInput";
 
 export default function AddItem() {
+  
   return (
-    <ThemedView>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-    </ThemedView>
+    <TabContainer>
+      {/* <ThemedText type="title">Explore</ThemedText> */}
+      <ThemedButton type="orange" onPress={() => {}}>
+        <IconSymbol size={35} name="plus" color={Colors['light'].text} />
+      </ThemedButton>
+      <ThemedInput type="grey" placeholder="Item Name" />
+      <ThemedInput type="grey" placeholder="Quantity" />
+      <ThemedInput type="grey" placeholder="Category" />
+      <ThemedInput type="grey" placeholder="Expiration" />
+    </TabContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    bottom: -90,
-    left: -35,
-  },
-});

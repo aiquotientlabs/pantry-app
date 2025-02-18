@@ -24,6 +24,31 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
   orange: {
+    text: '#11181C',
+    background: '#F5BD4D',
     tint: '#F5BD4D',
-  }
+    icon: '#F5BD4D',
+    border: '#F3B12B'
+  },
+  green: {
+    text: '#11181C',
+    background: '#4DF652',
+    tint: '#4DF652',
+    icon: '#4DF652',
+    border: '#2AEF31'
+  },
+  red: {
+    text: '#11181C',
+    background: 'F64D4D',
+    tint: '#F64D4D',
+    icon: '#F64D4D',
+    border: '#F32B2B'
+  },
+  grey: {
+    text: '#11181C',
+    background: '',
+    tint: '#EFEFEF',
+    icon: '#EFEFEF',
+    border: '#E2E2E2'
+  },
 };
