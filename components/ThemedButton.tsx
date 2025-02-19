@@ -1,18 +1,27 @@
-import { TouchableOpacity, type TouchableOpacityProps, StyleSheet } from 'react-native';
+import { TouchableOpacity, type TouchableOpacityProps, StyleSheet, useColorScheme } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { useState } from 'react';
 
 export type ThemedButtonProps = TouchableOpacityProps & {
-  type?: 'orange' | 'green' | 'red' | 'grey';
+  type?: 'orange' | 'green' | 'red' | 'grey' | 'greyLight' | 'greyDark';
   shape?: 'default';
 };
 
 export function ThemedButton({
+  style,
   type = 'orange',
   shape = 'default',
   ...rest
 }: ThemedButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
+  if(type === 'grey') {
+    const colorScheme = useColorScheme();
+    if(colorScheme === 'light') {
+      type = 'greyLight';
+    } else {
+      type = 'greyDark';
+    }
+  }
 
   return (
     <TouchableOpacity
@@ -21,6 +30,7 @@ export function ThemedButton({
         {backgroundColor: Colors[type].tint},
         isPressed === false ? {borderColor: Colors[type].border} : {opacity: 0.85, borderColor: Colors[type].tint},
         shape === 'default' ? styles.defaultShape : undefined,
+        style
       ]}
       {...rest}
       onPressIn={() => setIsPressed(true)}
@@ -43,7 +53,7 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   defaultShape: {
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 5,
   },
 });

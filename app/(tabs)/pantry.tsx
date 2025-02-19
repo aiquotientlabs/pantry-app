@@ -1,17 +1,15 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { Text, View } from "react-native";
+import { ItemContainer } from "@/components/ItemContainer";
+import { TabContainer } from "@/components/TabContainer";
+import { ThemedInput } from "@/components/ThemedInput";
+import { ScrollView } from "react-native";
+
 
 export default function Pantry() {
   return (
-    <ThemedView
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <ThemedText>PANTRY OVERVIEW</ThemedText>
-    </ThemedView>
+    <TabContainer>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <ItemContainer type="grey" name="Apple" quantity="5" category="Fruit" expiration="03-15-2025" />
+      </ScrollView>
+    </TabContainer>
   );
 }

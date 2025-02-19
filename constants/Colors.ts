@@ -26,6 +26,7 @@ export const Colors = {
   orange: {
     text: '#11181C',
     background: '#F5BD4D',
+    placeholder: '#D3D3D3',
     tint: '#F5BD4D',
     icon: '#F5BD4D',
     border: '#F3B12B'
@@ -46,9 +47,26 @@ export const Colors = {
   },
   grey: {
     text: '#11181C',
+    placeholder: '#D3D3D3',
     background: '',
     tint: '#EFEFEF',
     icon: '#EFEFEF',
     border: '#E2E2E2'
+  },
+  greyLight: {
+    text: '#11181C',
+    placeholder: '',
+    background: '',
+    tint: '#EFEFEF',
+    icon: '',
+    border: '#E2E2E2'
+  },
+  greyDark: {
+    text: '#ECEDEE',
+    placeholder: '#9E9E9E',
+    background: '',
+    tint: '#404344',
+    icon: '#ECEDEE',
+    border: '#2A2E30'
   },
 };
