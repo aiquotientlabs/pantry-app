@@ -4,16 +4,18 @@ import { useState } from 'react';
 
 export type ThemedButtonProps = TouchableOpacityProps & {
   type?: 'orange' | 'green' | 'red' | 'grey' | 'greyLight' | 'greyDark';
+  select?: 'orange' | 'green' | 'red' | 'grey' | 'greyLight' | 'greyDark';
   shape?: 'default';
 };
 
-export function ThemedButton({
+export function ThemedSelect({
   style,
-  type = 'orange',
+  type = 'grey',
+  select = 'orange',
   shape = 'default',
   ...rest
 }: ThemedButtonProps) {
-  const [isPressed, setIsPressed] = useState(false);
+  const [isSelected, setSelected] = useState(false);
   if(type === 'grey') {
     const colorScheme = useColorScheme();
     if(colorScheme === 'light') {
@@ -25,17 +27,14 @@ export function ThemedButton({
 
   return (
     <TouchableOpacity
-      activeOpacity={1}
       style={[
         styles.default,
-        {backgroundColor: Colors[type].tint},
-        isPressed === false ? {borderColor: Colors[type].border} : {opacity: 0.85, borderColor: Colors[type].tint},
+        isSelected === true ? {backgroundColor: Colors[select].background, borderColor: Colors[select].border, opacity: 0.85} : {backgroundColor: Colors[type].tint, borderColor: Colors[type].border},
         shape === 'default' ? styles.defaultShape : undefined,
         style
       ]}
       {...rest}
-      onPressIn={() => setIsPressed(true)}
-      onPressOut={() => setIsPressed(false)}
+      onPress={() => setSelected(!isSelected)}
     />
   );
 }
@@ -44,8 +43,6 @@ const styles = StyleSheet.create({
   default: {
     borderWidth: 4,
     borderTopWidth: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
     //shadow ios
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
