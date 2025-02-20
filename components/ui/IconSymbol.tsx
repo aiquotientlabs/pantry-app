@@ -15,6 +15,7 @@ const MAPPING = {
   'gear': 'settings',
   'plus': 'add',
   'xmark': 'clear',
+  'magnifyingglass': 'search',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

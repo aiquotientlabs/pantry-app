@@ -25,6 +25,7 @@ export function ThemedButton({
 
   return (
     <TouchableOpacity
+      activeOpacity={1}
       style={[
         styles.default,
         {backgroundColor: Colors[type].tint},
@@ -44,6 +45,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderTopWidth: 0,
     alignItems: 'center',
+    justifyContent: 'center',
     //shadow ios
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
