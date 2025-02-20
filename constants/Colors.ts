@@ -40,7 +40,7 @@ export const Colors = {
   },
   red: {
     text: '#11181C',
-    background: 'F64D4D',
+    background: '#F64D4D',
     tint: '#F64D4D',
     icon: '#F64D4D',
     border: '#F32B2B'

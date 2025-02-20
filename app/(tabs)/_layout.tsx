@@ -40,7 +40,7 @@ export default function TabLayout() {
         name="addItem"
         options={{
           title: 'Add Item',
-          headerTitle: 'Shopping List',
+          headerTitle: 'Add To Pantry',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="cart.fill.badge.plus" color={color} />,
         }}
       />

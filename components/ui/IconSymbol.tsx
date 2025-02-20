@@ -14,6 +14,7 @@ const MAPPING = {
   'list.bullet': 'format-list-bulleted',
   'gear': 'settings',
   'plus': 'add',
+  'xmark': 'clear',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

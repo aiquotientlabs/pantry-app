@@ -4,6 +4,7 @@ import { ThemedText } from './ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useState } from 'react';
 import { ThemedBadge } from './ThemedBadge';
+import { ThemedSelect } from './ThemedSelect';
 
 export type ItemContainerProps = ThemedViewProps & {
   type?: 'orange' | 'green' | 'red' | 'grey' | 'greyLight' | 'greyDark';
@@ -33,13 +34,13 @@ export function ItemContainer({
   }
   
   return (
-    <ThemedView
+    <ThemedSelect
       style={[
         styles.default,
-        {backgroundColor: Colors[type].tint, borderColor: Colors[type].border},
         shape === 'default' ? styles.defaultShape : undefined,
         style
       ]}
+      select='red'
     >
       <View style={{padding: 5}}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -51,7 +52,7 @@ export function ItemContainer({
           <ThemedText type='defaultSemiBold'>#{quantity}</ThemedText>
         </View>
       </View>
-    </ThemedView>
+    </ThemedSelect>
   );
 }
 
