@@ -1,5 +1,7 @@
 import { TabContainer } from '@/components/TabContainer';
+import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedInput } from "@/components/ThemedInput";
+import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity, Text} from "react-native";
 
@@ -15,17 +17,7 @@ export default function SignUp() {
 
             <ThemedInput type="grey" placeholder="Confirm Password" />
 
-            <TouchableOpacity
-                      style={{
-                        backgroundColor: "orange",
-                        padding: 15,
-                        borderRadius: 10,
-                        alignItems: "center",
-                      }}
-                      activeOpacity={0.6}
-                      onPress={() => {}}>
-                      <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>Create Account</Text>
-                    </TouchableOpacity>
+            <ThemedButton type = "orange" > <ThemedText type="subtitle"> Create Account </ThemedText> </ThemedButton>
 
         </ThemedView>
       
