@@ -3,14 +3,14 @@ import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedInput } from "@/components/ThemedInput";
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Link } from 'expo-router';
-import { TouchableOpacity, Text} from "react-native";
+import { Colors } from '@/constants/Colors';
+import { router } from 'expo-router';
 
 export default function SignUp() {
     return (
     <TabContainer>
 
-        <ThemedView style={{gap: 20}}>
+        <ThemedView style={{ gap: 20, justifyContent: 'center', flex: 1 }}>
 
             <ThemedInput type="grey" placeholder="Choose Username" />
 
@@ -18,7 +18,9 @@ export default function SignUp() {
 
             <ThemedInput type="grey" placeholder="Confirm Password" />
 
-            <ThemedButton type = "orange" > <ThemedText type="subtitle"> <Link href="/login"> Create Account </Link> </ThemedText> </ThemedButton>
+            <ThemedButton type = "orange" onPress={() => router.push('/login')}> 
+                <ThemedText type="subtitle" style={{color: Colors['light'].text}}>Create Account</ThemedText> 
+            </ThemedButton>
 
         </ThemedView>
       

@@ -2,12 +2,11 @@ import { TabContainer } from '@/components/TabContainer';
 import { ThemedInput } from "@/components/ThemedInput";
 import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity, Text } from "react-native";
-import { GoogleSignin, GoogleSigninButton } from "@react-native-google-signin/google-signin"
-import DeviceInfo from "react-native-device-info"
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
-import { Link, Redirect, useRouter } from "expo-router"
+import { router } from "expo-router"
 import { useState } from 'react';
+import { Colors } from '@/constants/Colors';
 
 
 export default function Login() {
@@ -16,26 +15,28 @@ export default function Login() {
   const [isSignedIn, setSignedIn] = useState(false);
 
   if (isSignedIn) {
-    return <Redirect href="./(tabs)/homescreen" />
+    router.push('/homescreen');
   }
 
   return (
     <TabContainer>
 
-      <ThemedView style={{ gap: 20 }}>
+      <ThemedView style={{ gap: 20, justifyContent: 'center', flex: 1 }}>
 
-        <ThemedInput type="grey" placeholder="Username..." style={{ marginTop: 200 }} />
+        <ThemedInput type="grey" placeholder="Username..." />
 
         <ThemedInput type="grey" placeholder="Password..." />
 
-        <ThemedButton type = "orange" > <ThemedText type="subtitle"> <Link href="./(tabs)/homescreen"> Login </Link> </ThemedText> </ThemedButton>
+        <ThemedButton type = "orange" onPress={() => router.push('/homescreen')}> 
+          <ThemedText type="subtitle" style={{color: Colors['light'].text}}>Login</ThemedText> 
+        </ThemedButton>
 
         <TouchableOpacity style={{ alignSelf: "center" }}>
           <Text style={{ color: "cyan", fontSize: 16, textDecorationLine: "underline" }}>Forgot Password</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={{ alignSelf: "center" }}>
-          <Text style={{ color: "cyan", fontSize: 16, textDecorationLine: "underline" }}><Link href="/signUp">Sign Up</Link></Text>
+        <TouchableOpacity style={{ alignSelf: "center" }} onPress={() => router.push('/signUp')}>
+          <Text style={{ color: "cyan", fontSize: 16, textDecorationLine: "underline" }}>Sign Up</Text>
         </TouchableOpacity>
 
       </ThemedView>
