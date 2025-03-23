@@ -4,7 +4,6 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { ThemedInput } from "@/components/ThemedInput";
 import { ThemedView } from '@/components/ThemedView';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemedIcon } from '@/components/ThemedIcon';
 
 export default function AddItem() {

@@ -29,7 +29,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="homescreen"
         options={{
           title: 'Home',
           headerTitle: 'Home Dashboard',
