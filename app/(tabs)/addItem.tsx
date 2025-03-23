@@ -4,28 +4,38 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { ThemedInput } from "@/components/ThemedInput";
 import { ThemedView } from '@/components/ThemedView';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemedIcon } from '@/components/ThemedIcon';
+import { useState } from 'react';
 
-export default function AddItem() {
+export type itemProps = {
+  itemName: string | undefined,
+  category?: string | undefined,
+  expiration?: string | undefined,
+};
+
+export default function AddItem({ itemName = '', category = '', expiration = '' }: itemProps) {
+  const [isItemName, setItemName] = useState(itemName);
+  const [isQuantity, setQuantity] = useState('');
+  const [isCategory, setCategory] = useState(category);
+  const [isExpiration, setExpiration] = useState(expiration);
   
   return (
     <TabContainer>
 
       <ThemedView style={{gap: 20}}>
 
-        <ThemedInput type="grey" placeholder="Item Name" />
+        <ThemedInput type="grey" onChangeText={newText => setItemName(newText)} value={isItemName} placeholder="Item Name" />
 
-        <ThemedInput type="grey" placeholder="Quantity" />
+        <ThemedInput type="grey" onChangeText={newText => setQuantity(newText)} value={isQuantity} placeholder="Quantity" />
 
         <ThemedView style={{flexDirection: 'row', gap: 10}}>
-          <ThemedInput style={{flex: 1}} type="grey" placeholder="Category" />
+          <ThemedInput style={{flex: 1}} type="grey" onChangeText={newText => setCategory(newText)} value={isCategory} placeholder="Category" />
           <ThemedButton type="grey" onPress={() => {}}>
             <ThemedIcon size={35} name="plus" type='grey' />
           </ThemedButton>
         </ThemedView>
 
-        <ThemedInput type="grey" placeholder="Expiration Date" />
+        <ThemedInput type="grey" onChangeText={newText => setExpiration(newText)} value={isExpiration} placeholder="Expiration Date" />
 
         <ThemedButton type="orange" onPress={() => {}}>
           <IconSymbol size={35} name="plus" color={Colors['light'].text} />

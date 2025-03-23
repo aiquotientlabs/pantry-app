@@ -5,8 +5,8 @@ import {
   scanFromURLAsync,
   useCameraPermissions,
 } from "expo-camera";
-import { useEffect, useRef, useState } from "react";
-import { Button, Pressable, StyleSheet, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { AntDesign } from "@expo/vector-icons";
 import { FontAwesome6 } from "@expo/vector-icons";
@@ -15,16 +15,18 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedButton } from "@/components/ThemedButton";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Colors } from "@/constants/Colors";
+import { ThemedIcon } from "@/components/ThemedIcon";
+import AddItem from "./addItem";
 
 export default function Camera() {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
   const [uri, setUri] = useState<string | null>(null);
-  const [mode, setMode] = useState("picture");
   const [facing, setFacing] = useState<CameraType>("back");
-  const [recording, setRecording] = useState(false);
   const [isBarcode, setBarcode] = useState<string>();
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [isData, setData] = useState();
+  const [isPressed, setPressed] = useState(false);
 
   if (!permission) {
     return null;
@@ -47,29 +49,12 @@ export default function Camera() {
     console.log(photo?.uri);
   };
 
-  const recordVideo = async () => {
-    if (recording) {
-      console.log("end recording");
-      setRecording(false);
-      ref.current?.stopRecording();
-      return;
-    }
-    console.log("start recording");
-    setRecording(true);
-    const video = await ref.current?.recordAsync();
-    console.log({ video });
-  };
-
-  const toggleMode = () => {
-    setMode((prev) => (prev === "picture" ? "barcode" : "picture"));
-  };
-
   const toggleFacing = () => {
     setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
   const renderPicture = () => {
-    return (
+    return(
       <ThemedView>
         <Image
           source={{ uri }}
@@ -86,7 +71,6 @@ export default function Camera() {
   const handleBarcodeScan = (barcode: string) => {
     if(isBarcode != barcode) {
       setBarcode(barcode);
-      fetchProductDetails(barcode);
     }
     if(timeoutId) {
       clearTimeout(timeoutId);
@@ -95,9 +79,9 @@ export default function Camera() {
     setTimeoutId(newTimeout);
   }
 
-  const fetchProductDetails = async (barcode: string) => {
+  const fetchProductDetails = async () => {
     try {
-        const url = `https://world.openfoodfacts.net/api/v2/product/${barcode}?fields=expiration_date,pnns_groups_1,product_name`;
+        const url = `https://world.openfoodfacts.net/api/v2/product/${isBarcode}?fields=expiration_date,pnns_groups_1,product_name`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -105,9 +89,10 @@ export default function Camera() {
         }
 
         const data = await response.json();
-        console.log(data);
+        console.info(data)
+        return data;
     } catch (error) {
-        console.error("Error fetching product details:", error, "Barcode:", barcode);
+        console.error("Error fetching product details:", error, "Barcode:", isBarcode);
     }
   };
 
@@ -127,8 +112,11 @@ export default function Camera() {
         }}
       >
         <View style={styles.barcodeContainer}>
-          <Pressable onPress={toggleMode} disabled={!isBarcode} style={{
-            opacity: isBarcode ? 1 : 0,
+          <Pressable onPress={async () => {
+            const data = await fetchProductDetails();
+            setData(data);
+          }} disabled={!isBarcode} onPressIn={() => setPressed(true)} onPressOut={() => setPressed(false)} style={{
+            opacity: isBarcode ? (isPressed ? 0.5 : 1) : 0,
           }}>
             <View style={styles.barcodeBtn}>
               <MaterialCommunityIcons name="barcode-scan" size={20} color={Colors['orange'].tint} />
@@ -138,16 +126,11 @@ export default function Camera() {
         </View>
 
         <View style={styles.shutterContainer}>
-          <Pressable onPress={toggleMode}>
-            {mode === "picture" ? (
-              <AntDesign name="picture" size={32} color="white" />
-            ) : (
-              <MaterialCommunityIcons name="barcode-scan" size={32} color="white" />
-            )}
+          <Pressable onPress={() => {}} disabled={!!isData}>
+            <AntDesign name="picture" size={32} color="white" />
           </Pressable>
           
-          {mode === "picture" && 
-          <Pressable onPress={takePicture}>
+          <Pressable onPress={takePicture} disabled={!!isData}>
             {({ pressed }) => (
               <View
                 style={[
@@ -161,12 +144,26 @@ export default function Camera() {
               </View>
             )}
           </Pressable>
-          }
-          <Pressable onPress={toggleFacing}>
+
+          <Pressable onPress={toggleFacing} disabled={!!isData}>
             <FontAwesome6 name="rotate-left" size={32} color="white" />
           </Pressable>
         </View>
+        {isData && renderAddItem()}
       </CameraView>
+    );
+  };
+
+  const renderAddItem = () => {
+    return (
+      <View style={styles.overlayContainer}>
+        <ThemedButton style={styles.overlayExit} type="grey" onPress={() => setData(undefined)}>
+          <ThemedIcon size={50} name="xmark" type='red' />
+        </ThemedButton>
+        <View style={styles.overlay}>
+          <AddItem itemName={isData.product.product_name} category={isData.product.pnns_groups_1} expiration={isData.product.expiration_date} />
+        </View>
+      </View>
     );
   };
 
@@ -182,7 +179,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    gap: 10
   },
   camera: {
     flex: 1,
@@ -230,6 +226,32 @@ const styles = StyleSheet.create({
   },
   barcodeTxt: {
     color: Colors['orange'].tint,
-    fontSize: 16,
+    fontSize: 20,
   },
+  overlayContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  overlay: {
+    position: "absolute",
+    backgroundColor: 'transparent',
+    width: '95%',
+    borderWidth: 4,
+    borderTopWidth: 0,
+    borderRadius: 5,
+    borderColor: Colors['dark'].border,
+  },
+  overlayExit: {
+    position: "absolute",
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    elevation: 0,
+    top: 30,
+    left: 5
+  },
+  pressed: {
+    opacity: 0.5
+  }
 });
