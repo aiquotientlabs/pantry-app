@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
   },
   barcodeBtn: {
     flexDirection: "row",
+    alignItems: 'center',
     gap: 5,
     backgroundColor: Colors['dark'].background,
     borderRadius: 50,
