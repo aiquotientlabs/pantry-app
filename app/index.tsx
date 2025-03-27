@@ -1,12 +1,12 @@
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { Link, Redirect, useRouter } from "expo-router"
-import { getItemAsync } from "expo-secure-store";
-import { Text, View, StyleSheet } from "react-native"
+import { useState } from "react";
+import Login from "./login";
+import Homescreen from "./(tabs)/homescreen";
 
 export default function Index() {
-  const colorScheme = useColorScheme();
+  const [isAuthenticated, setAuthenticated] = useState(false);
   
-  return <Redirect href="/login" />
+  if (isAuthenticated) {
+    return(<Homescreen />);
+  }
+  return(<Login />);
 }

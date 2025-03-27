@@ -46,13 +46,14 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderTopWidth: 0,
     alignItems: 'center',
+    height: 50,
     //shadow ios
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3,
     //shadow android
-    elevation: 5
+    elevation: 5,
   },
   defaultShape: {
     borderRadius: 5,
