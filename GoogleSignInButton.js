@@ -3,41 +3,40 @@ import React, { useEffect } from 'react';
 import { Button } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth } from './firebaseConfig';
+import { useRouter } from 'expo-router'; // Added for navigation
 
 // Complete any pending auth sessions (important on Android)
 WebBrowser.maybeCompleteAuthSession();
 
 export default function GoogleSignInButton() {
-  // Generate a custom redirect URI using your app scheme, disabling the proxy
-  const redirectUri = makeRedirectUri({
-    scheme: 'com.aiquotientlabs.pantryapp',
-    useProxy: false,
-  });
+  const router = useRouter(); // Initialize router
 
-  useEffect(() => {
-    console.log('Redirect URI:', redirectUri);
-  }, [redirectUri]);
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    // Use the correct Android OAuth client ID (matching your SHA-1 and package name)
-    androidClientId: '995252279634-b8fi5ikbcnup88q02hrn5u0kf9poe4cc.apps.googleusercontent.com',
-    // Optional iOS client ID (replace with your own if you test on iOS)
-    iosClientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
-    redirectUri,
-  });
+  // Use useIdTokenAuthRequest for native (installed) apps
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
+    {
+      // Use your Android OAuth client ID (configured with your package name and SHA‑1)
+      clientId: '995252279634-b8fi5ikbcnup88q02hrn5u0kf9poe4cc.apps.googleusercontent.com',
+    },
+    {
+      // The native redirect URI should match your app.json scheme.
+      // In this example, it becomes: "com.aiquotientlabs.pantryapp:/oauthredirect"
+      native: 'com.aiquotientlabs.pantryapp:/oauthredirect',
+    }
+  );
 
   useEffect(() => {
     if (response?.type === 'success') {
-      const { authentication } = response;
-      if (authentication?.idToken) {
-        const credential = GoogleAuthProvider.credential(authentication.idToken);
+      // The ID token is provided in response.params.id_token
+      const { id_token: idToken } = response.params;
+      if (idToken) {
+        const credential = GoogleAuthProvider.credential(idToken);
         signInWithCredential(auth, credential)
           .then((userCredential) => {
             console.log('User signed in:', userCredential.user);
+            // Navigate to the homescreen after successful sign in:
+            router.replace('/homescreen');
           })
           .catch((error) => {
             console.error('Error during sign in:', error);
