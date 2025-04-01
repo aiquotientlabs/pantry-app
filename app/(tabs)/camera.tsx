@@ -44,10 +44,34 @@ export default function Camera() {
   }
 
   const takePicture = async () => {
-    const photo = await ref.current?.takePictureAsync();
+    const photo = await ref.current?.takePictureAsync({ base64: true });
     setUri(photo?.uri);
-    console.log(photo?.uri);
+    console.log("Captured photo URI:", photo?.uri);
+  
+    if (photo?.base64) {
+      try {
+        const response = await fetch("http://192.168.0.193:3001/vision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: photo.base64 }),
+        });
+  
+        const result = await response.json();
+  
+        if (result.labels) {
+          console.log("Labels:", result.labels);
+          alert(`Top Label: ${result.labels[0].description} (${(result.labels[0].score * 100).toFixed(1)}%)`);
+          // You can set state here or pass labels to another screen if needed
+        } else {
+          alert("No labels found.");
+        }
+      } catch (err) {
+        console.error("Failed to call Vision server:", err);
+        alert("Error sending image to server.");
+      }
+    }
   };
+  
 
   const toggleFacing = () => {
     setFacing((prev) => (prev === "back" ? "front" : "back"));
