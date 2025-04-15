@@ -44,13 +44,16 @@ export default function Camera() {
   }
 
   const takePicture = async () => {
-    const photo = await ref.current?.takePictureAsync({ base64: true });
-    setUri(photo?.uri);
-    console.log("Captured photo URI:", photo?.uri);
+    const photo = await ref.current?.takePictureAsync({
+      base64: true,
+      quality: 0.4, // compress for faster uploads
+    });
   
     if (photo?.base64) {
+      setUri(photo.uri); // for local preview
+  
       try {
-        const response = await fetch("http://192.168.0.193:3001/vision", {
+        const response = await fetch("https://us-central1-food-inventory-app-450214.cloudfunctions.net/analyzeImage", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ imageBase64: photo.base64 }),
@@ -59,15 +62,14 @@ export default function Camera() {
         const result = await response.json();
   
         if (result.labels) {
-          console.log("Labels:", result.labels);
-          alert(`Top Label: ${result.labels[0].description} (${(result.labels[0].score * 100).toFixed(1)}%)`);
-          // You can set state here or pass labels to another screen if needed
+          console.log("Vision API Labels:", result.labels);
+          alert(`Top label: ${result.labels[0].description}`);
         } else {
           alert("No labels found.");
         }
       } catch (err) {
-        console.error("Failed to call Vision server:", err);
-        alert("Error sending image to server.");
+        console.error("Error sending image:", err);
+        alert("Failed to analyze image.");
       }
     }
   };
