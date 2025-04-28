@@ -18,6 +18,8 @@ import { Colors } from "@/constants/Colors";
 import { ThemedIcon } from "@/components/ThemedIcon";
 import AddItem from "./addItem";
 
+import { whitelist } from "./whitelist";
+
 export default function Camera() {
   const [permission, requestPermission] = useCameraPermissions();
   const ref = useRef<CameraView>(null);
@@ -43,14 +45,16 @@ export default function Camera() {
     );
   }
 
+  
+
   const takePicture = async () => {
     const photo = await ref.current?.takePictureAsync({
       base64: true,
-      quality: 0.4, // compress for faster uploads
+      quality: 0.4,
     });
   
     if (photo?.base64) {
-      setUri(photo.uri); // for local preview
+      setUri(photo.uri);
   
       try {
         const response = await fetch("https://us-central1-food-inventory-app-450214.cloudfunctions.net/analyzeImage", {
@@ -61,9 +65,35 @@ export default function Camera() {
   
         const result = await response.json();
   
-        if (result.labels) {
+        if (result.labels && result.labels.length > 0) {
           console.log("Vision API Labels:", result.labels);
-          alert(`Top label: ${result.labels[0].description}`);
+  
+          // Make lowercase whitelist for safe comparison
+          const lowerWhitelist = whitelist.map(item => item.toLowerCase());
+  
+          let matchedItem = null;
+  
+          for (const label of result.labels) {
+            const labelDesc = label.description.toLowerCase();
+            if (lowerWhitelist.includes(labelDesc)) {
+              matchedItem = label.description; // Keep original casing
+              break;
+            }
+          }
+  
+          if (matchedItem) {
+            console.log("Matched item:", matchedItem);
+  
+            setData({
+              product: {
+                product_name: matchedItem,
+                pnns_groups_1: "",
+                expiration_date: "",
+              },
+            });
+          } else {
+            alert("No matching food found.");
+          }
         } else {
           alert("No labels found.");
         }
@@ -73,6 +103,8 @@ export default function Camera() {
       }
     }
   };
+  
+  
   
 
   const toggleFacing = () => {
@@ -195,9 +227,10 @@ export default function Camera() {
 
   return (
     <View style={styles.container}>
-      {uri ? renderPicture() : renderCamera()}
+      {isData ? renderAddItem() : (uri ? renderPicture() : renderCamera())}
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
