@@ -5,7 +5,7 @@ import { ThemedSearchBar } from '@/components/ThemedSearchBar';
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ItemContainer } from '@/components/ItemContainer';
-import { fetchInventoryItems } from '../../inventoryService';
+import { fetchInventoryItems, deleteInventoryItem } from '../../inventoryService';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function Pantry() {
@@ -65,9 +65,18 @@ export default function Pantry() {
       </View>
 
       <View style={styles.footer}>
-        <ThemedButton style={{ flex: 1 }} type="red" onPress={() => { /* TODO: implement delete all functionality if needed */ }}>
+        <ThemedButton style={{ flex: 1 }} type={selectedItems.length > 0 ? 'red' : 'grey'} onPress={() => {
+          {inventory.forEach(item => {
+            const itemId = item.quantity + item.name + item.expiration;
+            if (selectedItems.includes(itemId)) {
+              deleteInventoryItem(item.id);
+              setSelectedItems(prev => prev.filter(i => i !== itemId));
+              loadInventory();
+            }
+          })}
+        }}>
           <ThemedText darkColor="dark" type="defaultSemiBold">
-            Delete All
+            Delete
           </ThemedText>
         </ThemedButton>
       </View>

@@ -14,13 +14,10 @@ export function ThemedButton({
   ...rest
 }: ThemedButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
+  const colorScheme = useColorScheme();
+  let resolvedType = type;
   if(type === 'grey') {
-    const colorScheme = useColorScheme();
-    if(colorScheme === 'light') {
-      type = 'greyLight';
-    } else {
-      type = 'greyDark';
-    }
+    resolvedType = colorScheme === 'light' ? 'greyLight' : 'greyDark';
   }
 
   return (
@@ -28,8 +25,8 @@ export function ThemedButton({
       activeOpacity={1}
       style={[
         styles.default,
-        {backgroundColor: Colors[type].tint},
-        isPressed === false ? {borderColor: Colors[type].border} : {opacity: 0.85, borderColor: Colors[type].tint},
+        {backgroundColor: Colors[resolvedType].tint},
+        isPressed === false ? {borderColor: Colors[resolvedType].border} : {opacity: 0.85, borderColor: Colors[resolvedType].tint},
         shape === 'default' ? styles.defaultShape : undefined,
         style
       ]}
