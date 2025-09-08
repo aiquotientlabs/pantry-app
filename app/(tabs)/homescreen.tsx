@@ -6,10 +6,28 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { fetchInventoryItems } from "@/inventoryService";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 
 export default function Index() {
   const colorScheme = useColorScheme();
+
+  const [inventory, setInventory] = useState<any[]>([]);
+  
+  const loadInventory = async () => {
+    const items = await fetchInventoryItems();
+    setInventory(items ?? []);
+  };
+
+  // Refresh inventory whenever the screen is focused.
+  useFocusEffect(
+    useCallback(() => {
+      loadInventory();
+    }, [])
+  );
+    
   return (
     <TabContainer>
       <ThemedView style={{flex: 1}}>
@@ -21,8 +39,24 @@ export default function Index() {
         <ThemedText type="title" style={{paddingBottom: 10}}>Expiring Soon:</ThemedText>
         <ScrollView showsVerticalScrollIndicator={false}>
           <ThemedView style={{gap: 10}}>
-            <ItemContainer type="grey" name="Apple" quantity="5" category="Fruit" expiration="03-15-2025" />
-            <ItemContainer type="grey" name="B" quantity="\" category="\" expiration="\" /><ItemContainer type="grey" name="C" quantity="\" category="\" expiration="\" /><ItemContainer type="grey" name="D" quantity="\" category="\" expiration="\" /><ItemContainer type="grey" name="E" quantity="\" category="\" expiration="\" /><ItemContainer type="grey" name="F" quantity="\" category="\" expiration="\" /><ItemContainer type="grey" name="G" quantity="\" category="\" expiration="\" /><ItemContainer type="grey" name="H" quantity="\" category="\" expiration="\" />
+            {inventory.length > 0 ? (
+              inventory.map((item) => {
+                const itemId = item.quantity + item.name + item.expiration;
+                // TODO: change expiration to type DATE (MM/DD/YYYY) and filter by items within 3 days of expiration
+                return (
+                  <ItemContainer
+                    key={itemId}
+                    type="grey"
+                    name={item.name || 'Unnamed'}
+                    quantity={item.quantity ? item.quantity.toString() : '0'}
+                    category={item.category || ''}
+                    expiration={item.expiration || ''}
+                  />
+                );
+              })
+            ) : (
+              <ThemedText>No items yet.</ThemedText>
+            )}
           </ThemedView>
         </ScrollView>
       </ThemedView>

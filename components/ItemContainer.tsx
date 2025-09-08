@@ -13,6 +13,8 @@ export type ItemContainerProps = ThemedViewProps & {
   quantity: string;
   category: string;
   expiration: string;
+  selected?: boolean;
+  onPress?: () => void;
 };
 
 export function ItemContainer({
@@ -23,14 +25,13 @@ export function ItemContainer({
   quantity = '',
   category = '',
   expiration = '',
+  selected = false,
+  onPress,
 }: ItemContainerProps) {
-  if(type === 'grey') {
-    const colorScheme = useColorScheme();
-    if(colorScheme === 'light') {
-      type = 'greyLight';
-    } else {
-      type = 'greyDark';
-    }
+  const colorScheme = useColorScheme();
+  let resolvedType = type;
+  if (type === 'grey') {
+    resolvedType = colorScheme === 'light' ? 'greyLight' : 'greyDark';
   }
   
   return (
@@ -40,7 +41,10 @@ export function ItemContainer({
         shape === 'default' ? styles.defaultShape : undefined,
         style
       ]}
+      isSelected={selected}
+      onPress={onPress}
       select='red'
+      type={resolvedType}
     >
       <View style={{padding: 5}}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
