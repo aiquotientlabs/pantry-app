@@ -6,6 +6,7 @@ export type ThemedButtonProps = TouchableOpacityProps & {
   type?: 'orange' | 'green' | 'red' | 'grey' | 'greyLight' | 'greyDark';
   select?: 'orange' | 'green' | 'red' | 'grey' | 'greyLight' | 'greyDark';
   shape?: 'default';
+  isSelected?: boolean;
 };
 
 export function ThemedSelect({
@@ -13,28 +14,25 @@ export function ThemedSelect({
   type = 'grey',
   select = 'orange',
   shape = 'default',
+  isSelected = false,
   ...rest
 }: ThemedButtonProps) {
-  const [isSelected, setSelected] = useState(false);
+  const colorScheme = useColorScheme();
+  let resolvedType = type;
   if(type === 'grey') {
-    const colorScheme = useColorScheme();
-    if(colorScheme === 'light') {
-      type = 'greyLight';
-    } else {
-      type = 'greyDark';
-    }
+    resolvedType = colorScheme === 'light' ? 'greyLight' : 'greyDark';
   }
 
   return (
     <TouchableOpacity
       style={[
         styles.default,
-        isSelected === true ? {backgroundColor: Colors[select].background, borderColor: Colors[select].border, opacity: 0.85} : {backgroundColor: Colors[type].tint, borderColor: Colors[type].border},
+        isSelected === true ? {backgroundColor: Colors[select].background, borderColor: Colors[select].border, opacity: 0.85} : {backgroundColor: Colors[resolvedType].tint, borderColor: Colors[resolvedType].border},
         shape === 'default' ? styles.defaultShape : undefined,
         style
       ]}
       {...rest}
-      onPress={() => setSelected(!isSelected)}
+      onPress={rest.onPress}
     />
   );
 }
