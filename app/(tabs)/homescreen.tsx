@@ -14,14 +14,12 @@ import { useFocusEffect } from "expo-router";
 
 import { useRegisterFcmToken } from "@/hooks/useRegisterFcmToken";
 import { useShoppingList } from "@/hooks/useShoppingList";
+import futureDate from "@/helpers/futureDate";
 
 export default function HomeScreen() {
   // Register device token for push after sign-in
   useRegisterFcmToken();
 
-  const colorScheme = useColorScheme();
-
-  // Upstream: inventory fetching for "Expiring Soon" (currently all items)
   const [inventory, setInventory] = useState<any[]>([]);
   const loadInventory = async () => {
     const items = await fetchInventoryItems();
@@ -38,13 +36,6 @@ export default function HomeScreen() {
 
   return (
     <TabContainer>
-      {/* Top action button (unchanged) */}
-      <ThemedView style={{ flex: 1 }}>
-        <ThemedButton style={{ flex: 1 }} type="grey" onPress={() => {}}>
-          <ThemedIcon size={35} name="plus" type="grey" />
-        </ThemedButton>
-      </ThemedView>
-
       {/* Expiring Soon (placeholder: currently shows all inventory from upstream) */}
       <ThemedView style={{ flex: 1 }}>
         <ThemedText type="title" style={{ paddingBottom: 10 }}>
@@ -60,7 +51,15 @@ export default function HomeScreen() {
                     item.quantity ?? 0
                   }|${idx}`;
                 // TODO: when expiration becomes a real date, filter to ≤ 3 days here.
+                const isExp = (expDate: string, closeDate: string) => {
+                  const [mE, dE, yE] = expDate.split('/').map(Number);
+                  const [mC, dC, yC] = closeDate.split('/').map(Number);
+                  const exp = new Date(yE, mE - 1, dE);
+                  const close = new Date(yC, mC - 1, dC);
+                  return exp <= close;
+                };
                 return (
+                  (isExp(item.expiration, futureDate(3))) && (
                   <ItemContainer
                     key={key}
                     type="grey"
@@ -69,7 +68,7 @@ export default function HomeScreen() {
                     category={item.category || ""}
                     expiration={item.expiration || ""}
                   />
-                );
+                ));
               })
             ) : (
               <ThemedText>No items yet.</ThemedText>
