@@ -12,20 +12,20 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 2. STEP 2: Run the app
 
 - Development Build (with firebase)
-- - Android
+   - Android
    ```bash
     npx expo prebuild
     npx expo run:android
    ```
-- - IOS
+   - IOS
    ```bash
     npx expo prebuild
     npx expo run:ios
    ```
 
 * FOR ANDROID: Download Android Studio and set the following environment variables for user
-- - Variable: ANDROID_HOME
-- - Value: ```C:\Users\<your_username>\AppData\Local\Android\Sdk```
+   - Variable: ANDROID_HOME
+   - Value: ```C:\Users\<your_username>\AppData\Local\Android\Sdk```
 
 - Expo Go (without firebase)
    ```bash
