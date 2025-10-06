@@ -1,33 +1,30 @@
+// functions/.eslintrc.js
 module.exports = {
   root: true,
-  env: {
-    es6: true,
-    node: true,
-  },
+  env: { es6: true, node: true },
   extends: [
     "eslint:recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:import/typescript",
-    "google",
     "plugin:@typescript-eslint/recommended",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: ["tsconfig.json", "tsconfig.dev.json"],
+    ecmaVersion: 2020,
     sourceType: "module",
+    // Note: no `project:` here — avoids type-aware lint & resolver issues
   },
   ignorePatterns: [
-    "/lib/**/*", // Ignore built files.
-    "/generated/**/*", // Ignore generated files.
+    "lib/**",
+    "node_modules/**",
+    "generated/**",
   ],
-  plugins: [
-    "@typescript-eslint",
-    "import",
-  ],
+  plugins: ["@typescript-eslint"],
   rules: {
-    "quotes": ["error", "double"],
-    "import/no-unresolved": 0,
-    "indent": ["error", 2],
+    quotes: ["error", "double"],
+    indent: ["error", 2],
+    // Relax a few noisy rules
+    "@typescript-eslint/no-explicit-any": "warn",
+    "max-len": "off",
+    "no-multi-spaces": "off",
+    "object-curly-spacing": ["error", "always"],
   },
 };

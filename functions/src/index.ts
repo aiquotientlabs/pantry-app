@@ -8,11 +8,13 @@ admin.initializeApp();
 const db = admin.firestore();
 
 /** === CONFIG === */
-const TIME_ZONE = "America/Phoenix"; // daily job runs at 09:00 in this timezone
-const EXPIRY_HORIZON_DAYS = 3;       // include items expiring today → +3 days
+const TIME_ZONE = "America/Phoenix"; // daily job runs at 09:00 in this TZ
+const EXPIRY_HORIZON_DAYS = 3; // include items expiring today → +3 days
 
-/** Parse "MM/DD/YYYY" to a Firestore Timestamp at 23:59:59.999 UTC of that day. */
-function parseExpirationStringToTs(s: unknown): admin.firestore.Timestamp | null {
+/** Parse "MM/DD/YYYY" to a Firestore Timestamp at 23:59:59.999 UTC. */
+function parseExpirationStringToTs(
+  s: unknown
+): admin.firestore.Timestamp | null {
   if (typeof s !== "string") return null;
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (!m) return null;
@@ -24,7 +26,10 @@ function parseExpirationStringToTs(s: unknown): admin.firestore.Timestamp | null
   return admin.firestore.Timestamp.fromMillis(ms);
 }
 
-/** Keep a derived `expirationTs` on inventory documents so we can range-query by date. */
+/**
+ * Keep a derived `expirationTs` so we can range-query by date.
+ * Triggers on create/update of inventory docs.
+ */
 export const normalizeInventoryOnWrite = onDocumentWritten(
   "inventory/{itemId}",
   async (event) => {
@@ -32,7 +37,7 @@ export const normalizeInventoryOnWrite = onDocumentWritten(
     if (!change || !change.after.exists) return; // ignore deletes
 
     const after = change.after;
-    const data = after.data() as any;
+    const data = after.data() as Record<string, unknown>;
 
     if (!data.expirationTs && data.expiration) {
       const ts = parseExpirationStringToTs(data.expiration);
@@ -48,14 +53,16 @@ export const normalizeInventoryOnWrite = onDocumentWritten(
   }
 );
 
-/** Shared core: find items expiring within horizon, group by user, send one push per user. */
+/**
+ * Core: find items expiring within the horizon, group by user,
+ * send one notification per token, prune invalid tokens.
+ */
 async function notifyExpiringItemsCore() {
   const now = admin.firestore.Timestamp.now();
   const until = admin.firestore.Timestamp.fromMillis(
     now.toMillis() + EXPIRY_HORIZON_DAYS * 24 * 60 * 60 * 1000
   );
 
-  // Find items with a derived timestamp between now and horizon (inclusive).
   const snap = await db
     .collection("inventory")
     .where("expirationTs", ">=", now)
@@ -63,22 +70,22 @@ async function notifyExpiringItemsCore() {
     .orderBy("expirationTs", "asc")
     .get();
 
-  // Group by owner uid
   const perUser = new Map<
     string,
     Array<{ name: string; expiration: admin.firestore.Timestamp }>
   >();
 
   snap.forEach((doc) => {
-    const x = doc.data() as any;
-    const uid: string | undefined = x?.uid;
+    const x = doc.data() as Record<string, unknown>;
+    const uid = x?.uid as string | undefined;
     if (!uid) return;
 
     const qty = Number(x?.quantity ?? 1);
-    if (qty <= 0) return; // ignore depleted items
+    if (qty <= 0) return;
 
-    const exp: admin.firestore.Timestamp | null =
-      x?.expirationTs ?? parseExpirationStringToTs(x?.expiration);
+    const exp =
+      (x?.expirationTs as admin.firestore.Timestamp | undefined) ??
+      parseExpirationStringToTs(x?.expiration as unknown);
     if (!exp) return;
 
     const name = String(x?.name ?? "item");
@@ -87,42 +94,60 @@ async function notifyExpiringItemsCore() {
     perUser.set(uid, list);
   });
 
-  // Send one batched push per user
   for (const [uid, items] of perUser.entries()) {
-    const tokensSnap = await db.collection("users").doc(uid).collection("fcmTokens").get();
+    const tokensSnap = await db
+      .collection("users")
+      .doc(uid)
+      .collection("fcmTokens")
+      .get();
+
     if (tokensSnap.empty) {
-      logger.debug("No FCM tokens for user; skipping", { uid, count: items.length });
+      logger.debug("No FCM tokens for user; skipping", {
+        uid,
+        count: items.length,
+      });
       continue;
     }
+
     const tokens = tokensSnap.docs.map((d) => d.id);
 
     const pretty = (t: admin.firestore.Timestamp) =>
-      t.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      t
+        .toDate()
+        .toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
     const body =
-      items.slice(0, 3).map((i) => `${i.name} (${pretty(i.expiration)})`).join(", ") +
+      items
+        .slice(0, 3)
+        .map((i) => `${i.name} (${pretty(i.expiration)})`)
+        .join(", ") +
       (items.length > 3 ? ` +${items.length - 3} more` : "");
 
-    const res = await admin.messaging().sendMulticast({
-      tokens,
-      notification: {
-        title: "Items expiring soon",
-        body,
-      },
-      data: { type: "expiry", count: String(items.length) },
-    });
-
-    // Prune invalid tokens
+    let success = 0;
     const bad: string[] = [];
-    res.responses.forEach((r, i) => {
-      const code = (r.error as any)?.code;
-      if (
-        code === "messaging/registration-token-not-registered" ||
-        code === "messaging/invalid-registration-token"
-      ) {
-        bad.push(tokens[i]);
+
+    for (const tok of tokens) {
+      try {
+        await admin.messaging().send({
+          token: tok,
+          notification: { title: "Items expiring soon", body },
+          data: { type: "expiry", count: String(items.length) },
+        });
+        success++;
+      } catch (err: unknown) {
+        const anyErr = err as { errorInfo?: { code?: string }; code?: string };
+        const code = anyErr?.errorInfo?.code || anyErr?.code;
+        if (
+          code === "messaging/registration-token-not-registered" ||
+          code === "messaging/invalid-registration-token"
+        ) {
+          bad.push(tok);
+        } else {
+          logger.warn("FCM send failed", { uid, token: tok, code });
+        }
       }
-    });
+    }
+
     if (bad.length) {
       await Promise.all(
         bad.map((t) =>
@@ -131,9 +156,17 @@ async function notifyExpiringItemsCore() {
       );
       logger.info("Pruned invalid FCM tokens", { uid, pruned: bad.length });
     }
+
+    logger.info("User notifications sent", {
+      uid,
+      tried: tokens.length,
+      success,
+    });
   }
 
-  logger.info("Expiry notifications processed", { usersNotified: perUser.size });
+  logger.info("Expiry notifications processed", {
+    usersNotified: perUser.size,
+  });
 }
 
 /** Daily scheduler at 09:00 Phoenix time. */
@@ -144,7 +177,7 @@ export const notifyExpiringItemsDaily = onSchedule(
   }
 );
 
-/** HTTP test endpoint so you can trigger the same logic on demand during dev. */
+/** HTTP test endpoint to trigger the same logic during development. */
 export const notifyExpiringItemsNow = onRequest(async (_req, res) => {
   try {
     await notifyExpiringItemsCore();

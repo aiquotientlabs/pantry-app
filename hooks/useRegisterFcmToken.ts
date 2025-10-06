@@ -1,48 +1,51 @@
+// hooks/useRegisterFcmToken.ts
 import { useEffect } from "react";
 import messaging from "@react-native-firebase/messaging";
 import { Platform } from "react-native";
-import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth } from "../firebaseConfig";
-
-const db = getFirestore();
+import { auth, db } from "@/firebaseConfig";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export function useRegisterFcmToken() {
   useEffect(() => {
-    let unsubRefresh: (() => void) | undefined;
+    let unsubRefresh: undefined | (() => void);
 
     (async () => {
       const user = auth.currentUser;
-      if (!user) return; // only run when signed-in
+      if (!user) return;
 
-      // Request notification permission (Android 13+/iOS)
-      const status = await messaging().requestPermission();
-      const enabled =
-        status === messaging.AuthorizationStatus.AUTHORIZED ||
-        status === messaging.AuthorizationStatus.PROVISIONAL;
-      if (!enabled) return;
+      // 1) Ensure parent user doc exists so 'users' collection is visible
+      await setDoc(
+        doc(db, "users", user.uid),
+        { uid: user.uid, updatedAt: serverTimestamp() },
+        { merge: true }
+      );
 
-      // Get token and store as a doc ID under users/{uid}/fcmTokens/{token}
-      const token = await messaging().getToken();
+      // 2) Ask permission & get token
+      try { await messaging().requestPermission(); } catch {}
+      const token = await messaging().getToken().catch(() => null);
+
       if (token) {
         await setDoc(
           doc(db, "users", user.uid, "fcmTokens", token),
           { platform: Platform.OS, createdAt: serverTimestamp() },
           { merge: true }
         );
+        console.log("Saved FCM token:", token);
+      } else {
+        console.log("No FCM token (permission/Play Services/emulator issue?)");
       }
 
-      // Keep it fresh
+      // 3) Keep token fresh
       unsubRefresh = messaging().onTokenRefresh(async (t) => {
-        const u = auth.currentUser;
-        if (!u) return;
         await setDoc(
-          doc(db, "users", u.uid, "fcmTokens", t),
+          doc(db, "users", user.uid, "fcmTokens", t),
           { platform: Platform.OS, createdAt: serverTimestamp() },
           { merge: true }
         );
+        console.log("Refreshed FCM token:", t);
       });
     })();
 
-    return () => { if (unsubRefresh) unsubRefresh(); };
+    return () => unsubRefresh?.();
   }, []);
 }
