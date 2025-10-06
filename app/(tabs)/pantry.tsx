@@ -1,15 +1,18 @@
-import React, { useState, useCallback } from 'react';
-import { ScrollView, View, StyleSheet, Text } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { ScrollView, View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedSearchBar } from '@/components/ThemedSearchBar';
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ItemContainer } from '@/components/ItemContainer';
-import { fetchInventoryItems } from '../../inventoryService';
+import { fetchInventoryItems, deleteInventoryItem } from '../../inventoryService';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function Pantry() {
   const [inventory, setInventory] = useState<any[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
+  const filteredInventory = inventory.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
 
   const loadInventory = async () => {
     const items = await fetchInventoryItems();
@@ -28,16 +31,29 @@ export default function Pantry() {
       <ScrollView showsVerticalScrollIndicator={false} style={{ paddingVertical: 70 }}>
         <ThemedView style={{ gap: 10, paddingBottom: 135 }}>
           {inventory.length > 0 ? (
-            inventory.map((item) => (
-              <ItemContainer
-                key={item.id}
-                type="grey"
-                name={item.name || 'Unnamed'}
-                quantity={item.quantity ? item.quantity.toString() : '0'}
-                category={item.category || ''}
-                expiration={item.expiration || ''}
-              />
-            ))
+            filteredInventory.map((item) => {
+              const itemId = item.quantity + item.name + item.expiration;
+              const isSelected = selectedItems.includes(itemId);
+              return (
+                (search === '' || item.name.toLowerCase().includes(search.toLowerCase())) && (
+                <ItemContainer
+                  key={itemId}
+                  type="grey"
+                  name={item.name || 'Unnamed'}
+                  quantity={item.quantity ? item.quantity.toString() : '0'}
+                  category={item.category || ''}
+                  expiration={item.expiration || ''}
+                  selected={isSelected}
+                  onPress={() => {
+                    setSelectedItems(prev =>
+                      prev.includes(itemId)
+                        ? prev.filter(i => i !== itemId)
+                        : [...prev, itemId]
+                    );
+                  }}
+                />
+              ));
+            })
           ) : (
             <ThemedText>No items yet.</ThemedText>
           )}
@@ -45,13 +61,22 @@ export default function Pantry() {
       </ScrollView>
 
       <View style={styles.searchContainer}>
-        <ThemedSearchBar style={{ flex: 1 }} placeholder="Search" />
+        <ThemedSearchBar style={{ flex: 1 }} placeholder="Search" value={search} onChangeText={setSearch} />
       </View>
 
       <View style={styles.footer}>
-        <ThemedButton style={{ flex: 1 }} type="red" onPress={() => { /* TODO: implement delete all functionality if needed */ }}>
+        <ThemedButton style={{ flex: 1 }} type={selectedItems.length > 0 ? 'red' : 'grey'} onPress={() => {
+          {inventory.forEach(item => {
+            const itemId = item.quantity + item.name + item.expiration;
+            if (selectedItems.includes(itemId)) {
+              deleteInventoryItem(item.id);
+              setSelectedItems(prev => prev.filter(i => i !== itemId));
+              loadInventory();
+            }
+          })}
+        }}>
           <ThemedText darkColor="dark" type="defaultSemiBold">
-            Delete All
+            Delete
           </ThemedText>
         </ThemedButton>
       </View>

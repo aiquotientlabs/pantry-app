@@ -100,7 +100,7 @@ export default function Camera() {
       } catch (err) {
         console.error("Error sending image:", err);
         alert("Failed to analyze image.");
-      }
+      } 
     }
   };
   
