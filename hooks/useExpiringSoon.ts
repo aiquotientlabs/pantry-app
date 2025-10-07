@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getFirestore, collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, query, where, orderBy, onSnapshot,limit, Timestamp } from 'firebase/firestore';
 import { auth } from '@/firebaseConfig';
 
 export function useExpiringSoon(days = 3) {
@@ -19,7 +19,8 @@ export function useExpiringSoon(days = 3) {
       where('uid', '==', user.uid),
       where('expirationTs', '>=', now),
       where('expirationTs', '<=', inN),
-      orderBy('expirationTs', 'asc')
+      orderBy('expirationTs', 'asc'),
+      limit(50)
     );
 
     const unsub = onSnapshot(q, (snap) => {
