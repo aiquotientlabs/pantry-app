@@ -23,13 +23,6 @@ export default function HomeScreen() {
 
   return (
     <TabContainer>
-      {/* Top action button (unchanged) */}
-      <ThemedView style={{ flex: 1 }}>
-        <ThemedButton style={{ flex: 1 }} type="grey" onPress={() => {}}>
-          <ThemedIcon size={35} name="plus" type="grey" />
-        </ThemedButton>
-      </ThemedView>
-
       {/* Expiring Soon (≤ 3 days) */}
       <ThemedView style={{ flex: 1 }}>
         <ThemedText type="title" style={{ paddingBottom: 10 }}>
