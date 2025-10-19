@@ -25,9 +25,6 @@ export default function Login() {
   return (
     <TabContainer>
       <ThemedView style={{ gap: 20, justifyContent: 'center', flex: 1 }}>
-        <ThemedInput type="grey" placeholder="Username..." />
-        <ThemedInput type="grey" placeholder="Password..." />
-
         <ThemedButton type="orange" onPress={() => router.push('/homescreen')}> 
           <ThemedText type="subtitle" style={{ color: Colors['light'].text }}>
             Login
@@ -36,18 +33,6 @@ export default function Login() {
 
         {/* Google Sign-In Button */}
         <GoogleSignInButton />
-
-        <TouchableOpacity style={{ alignSelf: "center" }}>
-          <Text style={{ color: "cyan", fontSize: 16, textDecorationLine: "underline" }}>
-            Forgot Password
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={{ alignSelf: "center" }} onPress={() => router.push('/signUp')}>
-          <Text style={{ color: "cyan", fontSize: 16, textDecorationLine: "underline" }}>
-            Sign Up
-          </Text>
-        </TouchableOpacity>
       </ThemedView>
     </TabContainer>
   );

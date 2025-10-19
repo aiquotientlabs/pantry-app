@@ -1,55 +1,60 @@
 // GoogleSignInButton.js
 import React, { useEffect } from 'react';
-import { Button } from 'react-native';
+import { Pressable, Image, StyleSheet } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth } from './firebaseConfig';
-import { useRouter } from 'expo-router'; // Added for navigation
+import { useRouter } from 'expo-router';
 
-// Complete any pending auth sessions (important on Android)
 WebBrowser.maybeCompleteAuthSession();
 
 export default function GoogleSignInButton() {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
-  // Use useIdTokenAuthRequest for native (installed) apps
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
     {
-      // Use your Android OAuth client ID (configured with your package name and SHA‑1)
       clientId: '995252279634-b8fi5ikbcnup88q02hrn5u0kf9poe4cc.apps.googleusercontent.com',
     },
     {
-      // The native redirect URI should match your app.json scheme.
-      // In this example, it becomes: "com.aiquotientlabs.pantryapp:/oauthredirect"
       native: 'com.aiquotientlabs.pantryapp:/oauthredirect',
     }
   );
-
+ 
   useEffect(() => {
     if (response?.type === 'success') {
-      // The ID token is provided in response.params.id_token
-      const { id_token: idToken } = response.params;
+      const idToken = response?.params?.id_token;
       if (idToken) {
         const credential = GoogleAuthProvider.credential(idToken);
         signInWithCredential(auth, credential)
-          .then((userCredential) => {
-            console.log('User signed in:', userCredential.user);
-            // Navigate to the homescreen after successful sign in:
-            router.replace('/homescreen');
-          })
-          .catch((error) => {
-            console.error('Error during sign in:', error);
-          });
+          .then(() => router.replace('/homescreen'))
+          .catch((err) => console.error('Google sign-in error:', err));
       }
     }
   }, [response]);
 
   return (
-    <Button
-      title="Sign in with Google"
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Sign in with Google"
       disabled={!request}
       onPress={() => promptAsync()}
-    />
+      style={({ pressed }) => [
+        styles.pressable,
+        pressed && { opacity: 0.85 },
+        !request && { opacity: 0.5 },
+      ]}
+    >
+      <Image
+        source={require('./assets/images/googleSignIn.png')}
+        style={styles.image}
+        resizeMode="contain"
+      />
+    </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  pressable: { alignItems: 'center', justifyContent: 'center' },
+  image: { width: 220, height: 48 },
+});

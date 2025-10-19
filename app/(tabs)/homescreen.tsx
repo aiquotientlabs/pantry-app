@@ -7,48 +7,74 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
 
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { fetchInventoryItems } from "@/inventoryService";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
+
 import { useRegisterFcmToken } from "@/hooks/useRegisterFcmToken";
 import { useShoppingList } from "@/hooks/useShoppingList";
-import { useExpiringSoon } from "@/hooks/useExpiringSoon";
+import futureDate from "@/helpers/futureDate";
 
 export default function HomeScreen() {
   // Register device token for push after sign-in
   useRegisterFcmToken();
 
-  // Expiring in ≤ 3 days
-  const { items: expiringSoon, loading: expiringLoading } = useExpiringSoon(3);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const loadInventory = async () => {
+    const items = await fetchInventoryItems();
+    setInventory(items ?? []);
+  };
+  useFocusEffect(
+    useCallback(() => {
+      loadInventory();
+    }, [])
+  );
 
-  // Low-stock (≤ 1)
-  const { items: lowStock, loading: lowStockLoading } = useShoppingList(1);
+  // Your low-stock (≤ 1) live query
+  const { items: lowStock, loading } = useShoppingList(1);
 
   return (
     <TabContainer>
-      {/* Expiring Soon (≤ 3 days) */}
+      {/* Expiring Soon (placeholder: currently shows all inventory from upstream) */}
       <ThemedView style={{ flex: 1 }}>
         <ThemedText type="title" style={{ paddingBottom: 10 }}>
-          Expiring Soon (≤ 3 days):
+          Expiring Soon:
         </ThemedText>
-
-        {expiringLoading ? (
-          <ThemedText>Loading…</ThemedText>
-        ) : expiringSoon.length === 0 ? (
-          <ThemedText>No items expiring soon!</ThemedText>
-        ) : (
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <ThemedView style={{ gap: 10 }}>
-              {expiringSoon.map((item: any) => (
-                <ItemContainer
-                  key={item.id}
-                  type="grey"
-                  name={String(item.name ?? "Unnamed")}
-                  quantity={String(item.quantity ?? 0)}
-                  category={String(item.category ?? "")}
-                  expiration={String(item.expiration ?? "")}
-                />
-              ))}
-            </ThemedView>
-          </ScrollView>
-        )}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <ThemedView style={{ gap: 10 }}>
+            {inventory.length > 0 ? (
+              inventory.map((item: any, idx: number) => {
+                const key =
+                  item.id ??
+                  `${item.name ?? "Unnamed"}|${item.expiration ?? ""}|${
+                    item.quantity ?? 0
+                  }|${idx}`;
+                // TODO: when expiration becomes a real date, filter to ≤ 3 days here.
+                const isExp = (expDate: string, closeDate: string) => {
+                  const [mE, dE, yE] = expDate.split('/').map(Number);
+                  const [mC, dC, yC] = closeDate.split('/').map(Number);
+                  const exp = new Date(yE, mE - 1, dE);
+                  const close = new Date(yC, mC - 1, dC);
+                  return exp <= close;
+                };
+                return (
+                  (isExp(item.expiration, futureDate(3))) && (
+                  <ItemContainer
+                    key={key}
+                    type="grey"
+                    name={item.name || "Unnamed"}
+                    quantity={item.quantity ? String(item.quantity) : "0"}
+                    category={item.category || ""}
+                    expiration={item.expiration || ""}
+                  />
+                ));
+              })
+            ) : (
+              <ThemedText>No items yet.</ThemedText>
+            )}
+          </ThemedView>
+        </ScrollView>
       </ThemedView>
 
       {/* Low-stock / Shopping list preview (live from Firestore) */}
@@ -57,10 +83,10 @@ export default function HomeScreen() {
           Low stock (≤ 1)
         </ThemedText>
 
-        {lowStockLoading ? (
+        {loading ? (
           <ThemedText>Loading…</ThemedText>
         ) : lowStock.length === 0 ? (
-          <ThemedText>Nothing to buy!</ThemedText>
+          <ThemedText>Nothing to buy 🎉</ThemedText>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
             <ThemedView style={{ gap: 10 }}>

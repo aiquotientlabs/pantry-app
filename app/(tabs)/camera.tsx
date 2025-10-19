@@ -100,7 +100,7 @@ export default function Camera() {
       } catch (err) {
         console.error("Error sending image:", err);
         alert("Failed to analyze image.");
-      }
+      } 
     }
   };
   
@@ -215,15 +215,11 @@ export default function Camera() {
   const renderAddItem = () => {
     return (
       <View style={styles.overlayContainer}>
+        <ThemedButton style={styles.overlayExit} type="grey" onPress={() => setData(undefined)}>
+          <ThemedIcon size={50} name="xmark" type='red' />
+        </ThemedButton>
         <View style={styles.overlay}>
           <AddItem itemName={isData.product.product_name} category={isData.product.pnns_groups_1} expiration={isData.product.expiration_date} />
-        </View>
-        <View style={styles.footer}>
-          <ThemedButton style={{ margin: 20, flex: 1 }} type="red" onPress={() => setData(undefined)}>
-            <ThemedText darkColor="dark" type="defaultSemiBold">
-              Cancel
-            </ThemedText>
-          </ThemedButton>
         </View>
       </View>
     );
@@ -317,10 +313,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.5
-  },
-  footer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-end'
   }
 });
