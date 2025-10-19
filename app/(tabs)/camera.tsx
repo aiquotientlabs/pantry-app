@@ -151,6 +151,7 @@ export default function Camera() {
         return data;
     } catch (error) {
         console.error("Error fetching product details:", error, "Barcode:", isBarcode);
+        alert(`No item found for barcode: ${isBarcode}.`);
     }
   };
 
