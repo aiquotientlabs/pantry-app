@@ -9,7 +9,7 @@ const db = admin.firestore();
 
 /** === CONFIG === */
 const TIME_ZONE = "America/Phoenix"; // daily job runs at 09:00 in this TZ
-const EXPIRY_HORIZON_DAYS = 3; // include items expiring today → +3 days
+const EXPIRY_HORIZON_DAYS = 3; // include items expiring today -> +3 days
 
 /** Parse "MM/DD/YYYY" to a Firestore Timestamp at 23:59:59.999 UTC. */
 function parseExpirationStringToTs(
@@ -171,6 +171,7 @@ async function notifyExpiringItemsCore() {
 
 /** Daily scheduler at 09:00 Phoenix time. */
 export const notifyExpiringItemsDaily = onSchedule(
+  
   { schedule: "every day 09:00", timeZone: TIME_ZONE },
   async () => {
     await notifyExpiringItemsCore();
