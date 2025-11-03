@@ -1,29 +1,32 @@
-// hooks/useShoppingList.ts
 import { useEffect, useState } from "react";
 import {
-  getFirestore,
   collection,
   query,
   where,
   onSnapshot,
-  DocumentData,
-  Query,
+  type DocumentData,
+  type Query,
 } from "firebase/firestore";
-import { auth } from "../firebaseConfig"; 
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { auth, db } from "../firebaseConfig";
 
 export function useShoppingList(threshold = 1) {
   const [items, setItems] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const db = getFirestore();
     let unsubFirestore: undefined | (() => void);
-    let authUnsub: () => void;
+    const detachFirestore = () => {
+      if (unsubFirestore) {
+        unsubFirestore();
+        unsubFirestore = undefined;
+      }
+    };
 
-    const attach = (user: User | null) => {
-      // If no user, clear and stop
+    const attachForUser = (user: User | null) => {
       if (!user) {
+        // Signed out: clear and stop listening
+        detachFirestore();
         setItems([]);
         setLoading(false);
         return;
@@ -33,7 +36,6 @@ export function useShoppingList(threshold = 1) {
         collection(db, "inventory"),
         where("uid", "==", user.uid),
         where("quantity", "<=", threshold)
-        // no orderBy for qty at the moment
       );
 
       unsubFirestore = onSnapshot(
@@ -50,19 +52,16 @@ export function useShoppingList(threshold = 1) {
     };
 
     // react to sign-in/sign-out
-    authUnsub = onAuthStateChanged(auth, (user) => {
-      // detach previous listener if threshold changes or user switches
-      if (unsubFirestore) {
-        unsubFirestore();
-        unsubFirestore = undefined;
-      }
+    setLoading(true);
+    const authUnsub = onAuthStateChanged(auth, (user) => {
+      detachFirestore();
       setLoading(true);
-      attach(user);
+      attachForUser(user);
     });
 
     return () => {
-      if (unsubFirestore) unsubFirestore();
-      authUnsub && authUnsub();
+      detachFirestore();
+      authUnsub();
     };
   }, [threshold]);
 

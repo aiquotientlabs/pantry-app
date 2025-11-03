@@ -1,5 +1,5 @@
 // inventoryService.js
-import { db } from './firebaseConfig';
+import { db, auth } from './firebaseConfig';
 import {
   collection,
   addDoc,
@@ -12,9 +12,9 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 
-/** Parse a user-entered date into a Firestore Timestamp.
+/**
+ * Parse a user-entered date into a Firestore Timestamp.
  *  Supports:
  *   - "MM/DD/YYYY" (e.g., "10/08/2025") -> local midnight
  *   - ISO strings (e.g., "2025-10-08", "2025-10-08T00:00:00.000Z")
@@ -42,7 +42,6 @@ function toExpirationTimestamp(expirationStr) {
 // CREATE
 export const addInventoryItem = async (item) => {
   try {
-    const auth = getAuth();
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
@@ -71,7 +70,6 @@ export const addInventoryItem = async (item) => {
 // READ (current user’s items)
 export const fetchInventoryItems = async () => {
   try {
-    const auth = getAuth();
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
@@ -98,7 +96,7 @@ export const updateInventoryItem = async (itemId, updatedData) => {
       } else {
         // If user cleared/invalidated the date, remove the Timestamp field.
         // Firestore doesn't support delete via updateDoc without FieldValue.delete(),
-        // so just omit or set to null based on your preference:
+        // so we null it out (keep your reads tolerant of null).
         patch.expirationTs = null;
       }
     }

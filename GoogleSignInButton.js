@@ -1,4 +1,3 @@
-// GoogleSignInButton.js
 import React, { useEffect } from 'react';
 import { Pressable, Image, StyleSheet } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
@@ -20,18 +19,23 @@ export default function GoogleSignInButton() {
       native: 'com.aiquotientlabs.pantryapp:/oauthredirect',
     }
   );
- 
+
   useEffect(() => {
-    if (response?.type === 'success') {
+    (async () => {
+      if (response?.type !== 'success') return;
+
       const idToken = response?.params?.id_token;
-      if (idToken) {
+      if (!idToken) return;
+
+      try {
         const credential = GoogleAuthProvider.credential(idToken);
-        signInWithCredential(auth, credential)
-          .then(() => router.replace('/homescreen'))
-          .catch((err) => console.error('Google sign-in error:', err));
+        await signInWithCredential(auth, credential);
+        router.replace('/homescreen');
+      } catch (err) {
+        console.error('Google sign-in error:', err);
       }
-    }
-  }, [response]);
+    })();
+  }, [response, router]);
 
   return (
     <Pressable
