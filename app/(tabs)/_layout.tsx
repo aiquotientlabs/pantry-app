@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, useColorScheme, Modal, View, Text, Pressable, SafeAreaView, } from 'react-native';
 
+import { getAuth, signOut } from "firebase/auth";
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
@@ -73,9 +74,17 @@ export default function TabLayout() {
           setMenuVisible(false);
         }}
         // Simply navigates to the login screen and closes the sub menu. Needs actual implementation.
-        onLogout={() => {
-          router.push('/login')
-          setMenuVisible(false);
+        onLogout={async () => {
+          try {
+            const auth = getAuth();
+            await signOut(auth);
+            router.replace("/login");
+            
+          } catch (e) {
+            console.error("Error signing out:", e);
+          } finally {
+            setMenuVisible(false);
+          }
         }}
         theme={theme}
       />
