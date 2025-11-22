@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TabContainer } from '@/components/TabContainer';
 import { ThemedButton } from "@/components/ThemedButton";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedIcon } from '@/components/ThemedIcon';
 import { addInventoryItem } from '../../inventoryService'; //import firestore function
 import futureDate from '@/helpers/futureDate';
+import { View, Text, StyleSheet } from 'react-native';
 
 export type itemProps = {
   itemName?: string;
@@ -67,12 +68,28 @@ export default function AddItem({ itemName = '', category = '', expiration = '' 
       setCategory('');
       setExpiration('');
 
-      alert('Item added to Firestore!');
+      // show success toast
+      showToastMessage('item has been added to your inventory!');
     } catch (error) {
       console.error('Error adding item:', error);
-      alert('Failed to add item.');
+      showToastMessage('Failed to add item.');
     }
   };
+
+  // Toast state and helpers
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const showToastMessage = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  }
+
+  useEffect(() => {
+    if (!toastVisible) return;
+    const t = setTimeout(() => setToastVisible(false), 3000);
+    return () => clearTimeout(t);
+  }, [toastVisible]);
 
   return (
     <TabContainer>
@@ -117,6 +134,31 @@ export default function AddItem({ itemName = '', category = '', expiration = '' 
           <IconSymbol size={35} name="plus" color={Colors['light'].text} />
         </ThemedButton>
       </ThemedView>
+      {toastVisible && (
+        <View style={styles.toastContainer} pointerEvents="none">
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
     </TabContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  toastContainer: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 40,
+    backgroundColor: '#333',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.95,
+  },
+  toastText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+});
