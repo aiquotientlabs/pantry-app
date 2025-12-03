@@ -1,0 +1,65 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+// 1) Put the buildscript block FIRST
+buildscript {
+    ext {
+        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
+        minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
+        compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
+        targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
+        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.25'
+        ndkVersion = "26.1.10909125"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Android Gradle Plugin - pin to a known compatible version
+        classpath('com.android.tools.build:gradle:8.6.0')
+        // React Native Gradle Plugin (no explicit version here keeps compatibility with RN plugin resolution)
+        classpath('com.facebook.react:react-native-gradle-plugin')
+        // Kotlin Gradle plugin matching the kotlinVersion above
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+
+        // Added Firebase Google Services Gradle plugin dependency
+        classpath('com.google.gms:google-services:4.4.2')
+    }
+
+}
+
+// Override react-native-firebase default SDK versions from package.json
+// This forces the Firebase BOM used by node_modules to a version compatible with Kotlin 1.9.x
+rootProject.ext.set('react-native', [
+    versions: [
+        android: [
+            firebase: [
+                bom: '32.5.0'
+            ]
+        ]
+    ]
+])
+
+// Also expose a simple override for react-native-firebase BOM used by node_modules
+rootProject.ext.reactNativeFirebaseBom = '32.5.0'
+
+apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    repositories {
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
+        }
+        maven {
+            // Android JSC is installed from npm
+            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
+        }
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
+    }
+}
+
+// 3) Finally, apply the Google Services plugin for Firebase at the bottom
+apply plugin: 'com.google.gms.google-services'
